@@ -1,5 +1,7 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import { Controller, Get, Post, Headers, Body } from '@nestjs/common';
 import { SetupService } from './setup.service';
+import { NewUserSetupDto } from './dto/new-user-setup.dto';
+import { User } from '@prisma/client';
 
 @Controller('setup')
 export class SetupController {
@@ -8,8 +10,8 @@ export class SetupController {
     ) {}
 
     @Post("superuser")
-    async createSuperUser() {
-        
+    async createSuperUser(@Headers("Authorization") authHeader: string, @Body() data: NewUserSetupDto): Promise<User> {
+        return await this.setupService.createSuperUser(data, authHeader);
     }
 
     @Get("roles")
