@@ -1,0 +1,7 @@
+-- CreateTable
+CREATE TABLE "APELIDO" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "campo" TEXT NOT NULL,
+    "outrocampo" INTEGER NOT NULL,
+    "data" DATETIME NOT NULL
+);
