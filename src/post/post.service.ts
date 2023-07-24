@@ -10,7 +10,7 @@ import { Post } from '@prisma/client';
 export class PostService {
     constructor(private prisma: PrismaService, private jwtService: JwtService) { }
 
-    async create(data: NewPostDto, token: TokenVerifiedDto, validationResult: ValidationResult): Promise<Post> {
+    async create(data: NewPostDto, token: TokenVerifiedDto): Promise<Post> {
         try {
             const newPost = await this.prisma.post.create({
                 data: {
@@ -47,34 +47,24 @@ export class PostService {
         }
     }
 
-    async update(id: number, data: NewPostDto, validationResult: ValidationResult, token: TokenVerifiedDto): Promise<Post> {
+    async update(data: NewPostDto, validationResult: ValidationResult, token: TokenVerifiedDto): Promise<Post> {
         try {
-            if (validationResult.owneronly = true) {
-                const ownPost = await this.prisma.post.findFirst({ where: { id: Number(id), author: token.email } })
-                if (!ownPost) throw new NotFoundException("Post not found.")
-
-                const updatedPost = await this.prisma.post.update({
-                    where: { id: Number(id) }, data: {
-                        title: data.title,
-                        content: data.content
-                    }
-                })
-                return updatedPost
+            let post: Post | null = null
+            if (validationResult.owneronly) {
+                post = await this.prisma.post.findFirst({ where: { id: data.postId, author: token.email }, include: { comments: true } })
             } else {
-                const postExists = await this.prisma.post.findUnique({ where: { id: Number(id) } })
-                if (!postExists) {
-                    throw new NotFoundException("Post not found.")
-                }
-
-                const updatedPost = await this.prisma.post.update({
-                    where: { id: Number(id) }, data: {
-                        title: data.title,
-                        content: data.content
-                    }
-                })
-                return updatedPost;
+                post = await this.prisma.post.findUnique({ where: { id: data.postId }, include: { comments: true } })
             }
+            if (!post) throw new NotFoundException("Post not found.")
 
+            const updatedPost = await this.prisma.post.update({
+                where: { id: post.id }, data: {
+                    title: data.title,
+                    content: data.content
+                }
+            })
+            
+            return updatedPost
         } catch (error) {
             throw new BadRequestException(error.message)
         }
@@ -82,26 +72,17 @@ export class PostService {
 
     async delete(id: number, validationResult: ValidationResult, token: TokenVerifiedDto): Promise<String> {
         try {
-            if (validationResult.owneronly = true) {
-                const ownPost = await this.prisma.post.findFirst({ where: { id: Number(id), author: token.email } })
-                if (!ownPost) throw new NotFoundException("Post not found.")
-
-                await this.prisma.post.delete({ where: { id: ownPost.id } })
-                return `Post ${id} has been deleted.`
+            let post: Post | null = null
+            if (validationResult.owneronly) {
+                post = await this.prisma.post.findFirst({ where: { id: Number(id), author: token.email }, include: { comments: true } })
             } else {
-                const postExists = await this.prisma.post.findUnique({ where: { id: Number(id) } })
-                if (!postExists) {
-                    throw new NotFoundException("Post not found.")
-                }
-
-                await this.prisma.post.delete({
-                    where: {
-                        id: Number(id)
-                    }
-                })
-
-                return `Post ${id} has been deleted.`
+                post = await this.prisma.post.findUnique({ where: { id: Number(id) }, include: { comments: true } })
             }
+            if (!post) throw new NotFoundException("Post not found.")
+
+            await this.prisma.post.delete({ where: { id: post.id }})
+
+            return `Post ${id} has been deleted.`
         } catch (error) {
             throw new BadRequestException(error.message)
         }

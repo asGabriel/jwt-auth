@@ -15,7 +15,7 @@ export class SetupService {
         const dotenv = process.env.API_KEY
         if (authHeader != dotenv) throw new UnauthorizedException
 
-        const checkSetup = await this.prismaService.role.findFirst({where: {name: 'admin'}})
+        const checkSetup = await this.prismaService.role.findUnique({where: {name: 'admin'}})
         if (!checkSetup) throw new BadRequestException("Start role setup first.")
 
         const hashPassword = await bcrypt.hash(data.password, 10);
@@ -27,7 +27,7 @@ export class SetupService {
                     password: hashPassword,
                     roles: {
                         connect: {
-                            name: 'admin'
+                            id: checkSetup.id
                         }
                     }
                 }, select: {

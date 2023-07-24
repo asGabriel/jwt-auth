@@ -13,10 +13,9 @@ export class PostController {
     constructor(private readonly authService: AuthService, private readonly postService: PostService) { }
 
     @Post()
-    async create(@Body() data: NewPostDto, @Headers('Authorization') authHeader: string, @Req() req: Request) {
+    async create(@Body() data: NewPostDto, @Headers('Authorization') authHeader: string) {
         const decodedToken = await this.authService.verifyToken(authHeader);
-        const validationResult: ValidationResult = req['context'];
-        return await this.postService.create(data, decodedToken, validationResult)
+        return await this.postService.create(data, decodedToken)
     }
 
     @Get()
@@ -31,11 +30,11 @@ export class PostController {
         return await this.postService.getOne(id);
     }
 
-    @Put(":id")
-    async update(@Param("id") id: number, @Body() data: NewPostDto, @Headers('Authorization') authHeader: string, @Req() req: Request) {
+    @Put()
+    async update(@Body() data: NewPostDto, @Headers('Authorization') authHeader: string, @Req() req: Request) {
         const decodedToken = await this.authService.verifyToken(authHeader);
         const validationResult: ValidationResult = req['context'];
-        return await this.postService.update(id, data, validationResult, decodedToken);
+        return await this.postService.update(data, validationResult, decodedToken);
     }
     
     @Delete(":id")
