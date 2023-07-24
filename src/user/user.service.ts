@@ -3,7 +3,7 @@ import { PrismaService } from 'src/database-sqlite/prisma.service';
 import { NewUserDto } from './dto/new-user.dto';
 import * as bcrypt from "bcrypt"
 import { DeleteUserDto } from './dto/delete-user.dto';
-import { TokenVerifyDto } from 'src/auth/dto/token-verify.dto';
+import { TokenVerifiedDto } from 'src/auth/dto/token-verified.dto';
 
 @Injectable()
 export class UserService {
@@ -59,7 +59,7 @@ export class UserService {
 
     }
 
-    async delete(data: DeleteUserDto, token: TokenVerifyDto) {
+    async delete(data: DeleteUserDto, token: TokenVerifiedDto) {
         try {
             const checkUserRole = await this.prisma.user.findUnique({
                 where: {

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/database-sqlite/prisma.service';
 import { UserRoleDto } from './dto/userRole.dto';
-import { TokenVerifyDto } from 'src/auth/dto/token-verify.dto';
+import { TokenVerifiedDto } from 'src/auth/dto/token-verified.dto';
 
 @Injectable()
 export class UserRoleService {
@@ -33,7 +33,7 @@ export class UserRoleService {
         }
     }
 
-    async getUnique(token: TokenVerifyDto) {
+    async getUnique(token: TokenVerifiedDto) {
         const userRole = await this.prismaService.role.findMany({
             where: {
                 users: {

@@ -3,18 +3,18 @@ export const rbac = [
         name: 'admin',
         permissions: [
             {
-                resources: ['posts', 'comments', 'users'],
+                resources: ['post', 'comment', 'user', 'permission', 'role-permission', 'user-role'],
                 action: [
                     {
-                        name: "create",
+                        name: "post",
                         owneronly: false
                     },
                     {
-                        name: "read",
+                        name: "get",
                         owneronly: false
                     },
                     {
-                        name: "update",
+                        name: "put",
                         owneronly: false
                     },
                     {
@@ -30,18 +30,18 @@ export const rbac = [
         name: "user",
         permissions: [
             {
-                resources: ['posts', 'comments'],
+                resources: ['post', 'comment'],
                 action: [
                     {
-                        name: 'create',
+                        name: 'post',
                         owneronly: true
                     },
                     {
-                        name: 'read',
+                        name: 'get',
                         owneronly: true
                     },
                     {
-                        name: 'update',
+                        name: 'put',
                         owneronly: true
                     },
                     {

@@ -1,8 +1,9 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import * as bcrypt from "bcrypt";
 import { PrismaService } from 'src/database-sqlite/prisma.service';
 import { rbac } from 'src/rbac-config';
 import { NewUserSetupDto } from './dto/new-user-setup.dto';
-import { User } from '@prisma/client';
+import { UserCreatedDto } from './dto/user-created.dto';
 
 @Injectable()
 export class SetupService {
@@ -10,23 +11,27 @@ export class SetupService {
         private readonly prismaService: PrismaService
     ) { }
 
-    async createSuperUser(data: NewUserSetupDto, authHeader: string): Promise<User> {
+    async createSuperUser(data: NewUserSetupDto, authHeader: string): Promise<UserCreatedDto> {
         const dotenv = process.env.API_KEY
         if (authHeader != dotenv) throw new UnauthorizedException
 
-        const checkSetup = await this.prismaService.role.findFirst()
-        if(!checkSetup) throw new BadRequestException("Start role setup first.")
+        const checkSetup = await this.prismaService.role.findFirst({where: {name: 'admin'}})
+        if (!checkSetup) throw new BadRequestException("Start role setup first.")
+
+        const hashPassword = await bcrypt.hash(data.password, 10);
 
         try {
             const newAdminuser = await this.prismaService.user.create({
                 data: {
                     email: data.email,
-                    password: data.password,
+                    password: hashPassword,
                     roles: {
                         connect: {
                             name: 'admin'
                         }
                     }
+                }, select: {
+                    id: true, email: true, createdAt: true
                 }
             })
 
@@ -39,6 +44,9 @@ export class SetupService {
     async rbacSetup(): Promise<void> {
         try {
             const roles = rbac
+            await this.prismaService.permission.deleteMany()
+            await this.prismaService.role.deleteMany()
+            await this.prismaService.resource.deleteMany()
 
             for (const role of roles) {
                 for (const permissions of role.permissions) {
