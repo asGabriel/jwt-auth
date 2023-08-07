@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Headers, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
+import { isPublic } from 'src/decorator/ispublic.decorator';
 import { NewUserSetupDto } from './dto/new-user-setup.dto';
-import { SetupService } from './setup.service';
 import { UserCreatedDto } from './dto/user-created.dto';
+import { SetupService } from './setup.service';
 
 @Controller('setup')
 export class SetupController {
@@ -10,12 +11,13 @@ export class SetupController {
     ) { }
 
     @Post("superuser")
-    async createSuperUser(@Headers("Authorization") authHeader: string, @Body() data: NewUserSetupDto): Promise<UserCreatedDto> {
-        return await this.setupService.createSuperUser(data, authHeader);
+    @isPublic()
+    async createSuperUser(@Body() data: NewUserSetupDto): Promise<UserCreatedDto> {
+        return await this.setupService.createSuperUser(data);
     }
 
     @Get("roles")
-    async setupRoles(): Promise<void> {
+    async setupRoles(): Promise<String> {
         return await this.setupService.rbacSetup();
     }
 

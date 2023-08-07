@@ -3,11 +3,10 @@ CREATE TABLE "users" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
+    "username" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
-    "deletedAt" DATETIME,
-    "roleId" INTEGER,
-    CONSTRAINT "users_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "roles" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+    "deletedAt" DATETIME
 );
 
 -- CreateTable
@@ -71,6 +70,14 @@ CREATE TABLE "invalidtokens" (
 );
 
 -- CreateTable
+CREATE TABLE "_RoleToUser" (
+    "A" INTEGER NOT NULL,
+    "B" TEXT NOT NULL,
+    CONSTRAINT "_RoleToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "roles" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "_RoleToUser_B_fkey" FOREIGN KEY ("B") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
 CREATE TABLE "_RolePermission" (
     "A" INTEGER NOT NULL,
     "B" INTEGER NOT NULL,
@@ -86,6 +93,12 @@ CREATE UNIQUE INDEX "roles_name_key" ON "roles"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "resources_name_key" ON "resources"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "_RoleToUser_AB_unique" ON "_RoleToUser"("A", "B");
+
+-- CreateIndex
+CREATE INDEX "_RoleToUser_B_index" ON "_RoleToUser"("B");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_RolePermission_AB_unique" ON "_RolePermission"("A", "B");

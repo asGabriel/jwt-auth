@@ -1,6 +1,12 @@
-import { BadRequestException, HttpStatus, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+    BadRequestException,
+    HttpStatus,
+    Injectable,
+    NotFoundException,
+    UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from "bcrypt";
+import * as bcrypt from 'bcrypt';
 import { jwtConstants } from 'src/constants/jwt-secret';
 import { PrismaService } from 'src/database-sqlite/prisma.service';
 import { SignInDto } from './dto/sign-in.dto';
@@ -14,37 +20,36 @@ export class AuthService {
         try {
             const user = await this.prisma.user.findUnique({
                 where: {
-                    email: data.email
-                }, include: {
-                    roles: {
-                        include: {
-                            permissions: {
-                                include: {
-                                    resource: true
-                                }
-                            }
-                        }
-                    }
-                }
-            })
-            if (!user) throw new NotFoundException("User doesn't exist.")
-            if(!user.roles) throw new UnauthorizedException("User without role, link to one before login")
-    
+                    email: data.email,
+                },
+                include: {
+                    Role: {
+                        select: {
+                            id: true,
+                            name: true,
+                        },
+                    },
+                },
+            });
+            if (!user) throw new NotFoundException("User doesn't exist.");
+            // if (!user.Role) throw new UnauthorizedException("User without role, link to one before login")
+
             const isMatch = await bcrypt.compare(data.password, user.password);
-            if (!isMatch) throw new UnauthorizedException;
-            
-            const perm = user.roles.permissions.map(({ name, resource, owneronly }) => ({
-                permission: name,
-                resource: resource.name,
-                owneronly: owneronly
-              }));
-    
+            if (!isMatch) throw new UnauthorizedException();
+
+            // const perm = user.Role
+            // const perm = user.Role.permissions.map(({ name, resource, owneronly }) => ({
+            //     permission: name,
+            //     resource: resource.name,
+            //     owneronly: owneronly
+            //   }));
+
             const payload = {
                 id: user.id,
                 email: user.email,
-                roles: perm
+                roles: user.Role,
             };
-    
+
             return {
                 access_token: await this.jwt.signAsync(payload, { secret: jwtConstants.secret }),
             };
@@ -56,21 +61,17 @@ export class AuthService {
     async verifyToken(bearerToken: string): Promise<TokenVerifiedDto> {
         try {
             const token = bearerToken.replace('Bearer ', '');
-            const verifiedToken = await this.jwt.verify(token);
+            const verifiedToken = await this.jwt.verify(token, { secret: jwtConstants.secret });
 
             const payload: TokenVerifiedDto = {
                 id: verifiedToken.id,
                 email: verifiedToken.email,
-                roles: verifiedToken.roles.map((role) => ({
-                    permission: role.permission,
-                    resource: role.resource,
-                    owneronly: role.owneronly
-                }))
+                roles: verifiedToken.roles
             }
 
             return payload;
         } catch (error) {
-            throw new UnauthorizedException;
+            throw new UnauthorizedException(error.message);
         }
     }
 

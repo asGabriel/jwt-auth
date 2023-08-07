@@ -20,6 +20,11 @@ export class UserRoleController {
         return await this.userRoleService.getUnique(decodedToken)
     }
 
+    @Get()
+    async getAll() {
+        return this.userRoleService.getAll()
+    }
+
     @Delete()
     async delete(@Body() data: UserRoleDto) {
         return await this.userRoleService.delete(data);

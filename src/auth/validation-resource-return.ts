@@ -3,12 +3,12 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 export class ValidationResult {
     permission: string
-    resource: string
     owneronly: boolean
+    resourceId: number
 
-    constructor(permission: string, resource: string, owneronly: boolean) {
+    constructor(permission: string,  owneronly: boolean, resourceId: number,) {
         this.permission = permission;
-        this.resource = resource;
+        this.resourceId = resourceId;
         this.owneronly = owneronly;
     }
 

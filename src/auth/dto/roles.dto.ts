@@ -1,5 +1,4 @@
 export class RolesTokenDto {
-    permission: string;
-    resource: string;
-    owneronly: boolean;
+    id: number;
+    name: string;
 }

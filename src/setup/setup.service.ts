@@ -11,9 +11,9 @@ export class SetupService {
         private readonly prismaService: PrismaService
     ) { }
 
-    async createSuperUser(data: NewUserSetupDto, authHeader: string): Promise<UserCreatedDto> {
+    async createSuperUser(data: NewUserSetupDto): Promise<UserCreatedDto> {
         const dotenv = process.env.API_KEY
-        if (authHeader != dotenv) throw new UnauthorizedException
+        if (data.key != dotenv) throw new UnauthorizedException("Wrong key")
 
         const checkSetup = await this.prismaService.role.findUnique({where: {name: 'admin'}})
         if (!checkSetup) throw new BadRequestException("Start role setup first.")
@@ -25,7 +25,8 @@ export class SetupService {
                 data: {
                     email: data.email,
                     password: hashPassword,
-                    roles: {
+                    username: data.username,
+                    Role: {
                         connect: {
                             id: checkSetup.id
                         }
@@ -41,7 +42,7 @@ export class SetupService {
         }
     }
 
-    async rbacSetup(): Promise<void> {
+    async rbacSetup(): Promise<String> {
         try {
             const roles = rbac
             await this.prismaService.permission.deleteMany()
@@ -81,6 +82,8 @@ export class SetupService {
                     }
                 }
             }
+
+            return "Setup has succesfully completed."
         } catch (error) {
             throw new BadRequestException("Setup has been already executed", error.message)
         }
