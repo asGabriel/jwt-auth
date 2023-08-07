@@ -1,11 +1,15 @@
-import { IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsString } from "class-validator";
 
 export class NewPermissionDto {
     @IsNotEmpty()
     @IsString()
-    name: string
+    permission: string
+    
+    @IsNotEmpty()
+    @IsString()
+    resource: string
 
     @IsNotEmpty()
-    @IsNumber()
-    resourceId: number
+    @IsBoolean()
+    owneronly: boolean
 }

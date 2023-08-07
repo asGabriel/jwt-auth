@@ -8,4 +8,12 @@ export class NewUserSetupDto {
     @IsString()
     @IsNotEmpty()
     password: string
+
+    @IsString()
+    @IsNotEmpty()
+    key: string
+
+    @IsString()
+    @IsNotEmpty()
+    username: string
 }

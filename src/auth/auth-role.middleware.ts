@@ -1,5 +1,11 @@
-import { BadRequestException, Injectable, NestMiddleware, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { Request, Response, NextFunction } from 'express';
+import {
+  BadRequestException,
+  Injectable,
+  NestMiddleware,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { NextFunction, Request, Response } from 'express';
 import { AuthService } from 'src/auth/auth.service';
 import { PrismaService } from 'src/database-sqlite/prisma.service';
 import { ValidationResult } from './validation-resource-return';
@@ -8,65 +14,85 @@ import { ValidationResult } from './validation-resource-return';
 export class AuthRoleMiddleware implements NestMiddleware {
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
   ) { }
 
   async use(req: Request, res: Response, next: NextFunction) {
-
     const httpMethod = req.method;
     const headerAuthorization = req.headers.authorization;
-    const urlParts = req.originalUrl.split('/')
+    const urlParts = req.originalUrl.split('/');
     const resource = urlParts[1];
     if (!resource) throw new BadRequestException();
+    if (!headerAuthorization)
+      throw new UnauthorizedException('Token not found');
 
-    const decodedToken = await this.authService.verifyToken(headerAuthorization);
-    const resourceRequested = await this.prismaService.resource.findUnique({ where: { name: resource } })
-    if (!resourceRequested) throw new NotFoundException("Resource not found");
+    const decodedToken = await this.authService.verifyToken(
+      headerAuthorization,
+    );
+    const resourceRequested = await this.prismaService.resource.findUnique({
+      where: { name: resource },
+    });
+    if (!resourceRequested) throw new NotFoundException('Resource not found');
 
     switch (httpMethod) {
       case 'GET':
-        const hasPermissionToGet = decodedToken.roles.find(
-          (item) => item.resource === resourceRequested.name && item.permission === httpMethod.toLowerCase()
-        );
-        if (!hasPermissionToGet) throw new UnauthorizedException("User does not have permission.");
-        const resultGet = new ValidationResult(hasPermissionToGet.permission, hasPermissionToGet.resource, hasPermissionToGet.owneronly)
-        req['context'] = { resultGet };
+        const getValidation: ValidationResult = await this.validatePermission(httpMethod, resourceRequested, decodedToken)
+        if (!getValidation)
+          throw new UnauthorizedException('User does not have permission');
+        req['context'] = { validation: getValidation };
         next();
         break;
 
       case 'POST':
-        const hasPermissionToPost = decodedToken.roles.find(
-          (item) => item.resource === resourceRequested.name && item.permission === httpMethod.toLowerCase()
-        );
-        if (!hasPermissionToPost) throw new UnauthorizedException("User does not have permission.");
-        const resultPost = new ValidationResult(hasPermissionToPost.permission, hasPermissionToPost.resource, hasPermissionToPost.owneronly)
-        req['context'] = { resultPost };
+        const postValidation: ValidationResult = await this.validatePermission(httpMethod, resourceRequested, decodedToken)
+        if (!postValidation)
+          throw new UnauthorizedException('User does not have permission.');
+        req['context'] = { postValidation };
         next();
         break;
 
       case 'PUT':
-        const hasPermissionToUpdate = decodedToken.roles.find(
-          (item) => item.resource === resourceRequested.name && item.permission === httpMethod.toLowerCase()
-        );
-
-        if (!hasPermissionToUpdate) throw new UnauthorizedException("User does not have permission.");
-        const resultPut = new ValidationResult(hasPermissionToUpdate.permission, hasPermissionToUpdate.resource, hasPermissionToUpdate.owneronly)
-        req['context'] = { resultPut };
+        const putValidation: ValidationResult = await this.validatePermission(httpMethod, resourceRequested, decodedToken)
+        if (!putValidation)
+          throw new UnauthorizedException('User does not have permission.');
+        req['context'] = { putValidation };
         next();
         break;
-        
-      case 'DELETE':
-        const hasPermissionToDelete = decodedToken.roles.find(
-          (item) => item.resource === resourceRequested.name && item.permission === httpMethod.toLowerCase()
-        );
 
-        if (!hasPermissionToDelete) throw new UnauthorizedException("User does not have permission.");
-        const resultDelete = new ValidationResult(hasPermissionToDelete.permission, hasPermissionToDelete.resource, hasPermissionToDelete.owneronly)
-        req['context'] = { resultDelete };
+      case 'DELETE':
+        const deleteValition: ValidationResult = await this.validatePermission(httpMethod, resourceRequested, decodedToken)
+        if (!deleteValition)
+          throw new UnauthorizedException('User does not have permission.');
+        req['context'] = { deleteValition };
         next();
         break;
       default:
         throw new UnauthorizedException();
     }
   }
+
+  async validatePermission(httpMethod, resourceRequested, decodedToken): Promise<ValidationResult> {
+    const validation = await this.prismaService.permission.findFirst({
+      where: {
+        name: httpMethod.toLowerCase(),
+        resourceId: resourceRequested.id,
+        roles: {
+          some: {
+            name: decodedToken.roles.map((role) => role.name).join()
+          }
+        }
+      }, select: {
+        name: true, owneronly: true, resourceId: true
+      }
+    })
+
+    const validationResult: ValidationResult = {
+      permission: validation.name,
+      resourceId: validation.resourceId,
+      owneronly: validation.owneronly
+    }
+
+    return validationResult;
+  }
+
 }

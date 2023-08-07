@@ -7,24 +7,24 @@ export class RolePermissionService {
   constructor(private readonly prismaService: PrismaService) { }
 
   async create(data: RolePermissionDto) {
-    try {
-      const user = await this.prismaService.user.findUnique({
-        where: {
-          id: data.userId,
-        },
-        include: {
-          roles: true,
-        },
-      });
-      if (user.roles) throw new BadRequestException("User already has an role.")
+    // try {
+    //   const user = await this.prismaService.user.findUnique({
+    //     where: {
+    //       id: data.userId,
+    //     },
+    //     include: {
+    //       roles: true,
+    //     },
+    //   });
+    //   if (user.roles) throw new BadRequestException("User already has an role.")
 
-      const permission = await this.prismaService.permission.findMany({
-        where: {
-          id: {
-            in: data.permissionId
-          }
-        }
-      })
+    //   const permission = await this.prismaService.permission.findMany({
+    //     where: {
+    //       id: {
+    //         in: data.permissionId
+    //       }
+    //     }
+    //   })
 
       // for (const roleId of roleIds) {
       //   await this.prismaService.permission.update({
@@ -39,11 +39,11 @@ export class RolePermissionService {
       //   });
       // }
 
-      return permission;
+    //   return permission;
 
-    } catch (error) {
-      throw new NotFoundException('Error to create user-role relationship.');
-    }
+    // } catch (error) {
+    //   throw new NotFoundException('Error to create user-role relationship.');
+    // }
   }
 
   // async delete(data: RolePermissionDto) {

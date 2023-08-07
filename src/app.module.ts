@@ -7,9 +7,10 @@ import { RolePermissionModule } from './role-permission/role-permission.module';
 import { UserRoleModule } from './user-role/user-role.module';
 import { UserModule } from './user/user.module';
 import { SetupModule } from './setup/setup.module';
+import { RoleModule } from './role/role.module';
 
 @Module({
-  imports: [UserModule, AuthModule, PostModule, CommentModule, UserRoleModule, RolePermissionModule, PermissionModule, SetupModule],
+  imports: [UserModule, AuthModule, PostModule, CommentModule, UserRoleModule, RolePermissionModule, PermissionModule, SetupModule, RoleModule],
   controllers: [],
   providers: [],
 })
