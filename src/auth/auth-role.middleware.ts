@@ -18,6 +18,8 @@ export class AuthRoleMiddleware implements NestMiddleware {
   ) { }
 
   async use(req: Request, res: Response, next: NextFunction) {
+    console.log("auth-role middleware")
+
     const httpMethod = req.method;
     const headerAuthorization = req.headers.authorization;
     const urlParts = req.originalUrl.split('/');
@@ -36,10 +38,12 @@ export class AuthRoleMiddleware implements NestMiddleware {
 
     switch (httpMethod) {
       case 'GET':
+        console.log("midd ware get")
         const getValidation: ValidationResult = await this.validatePermission(httpMethod, resourceRequested, decodedToken)
         if (!getValidation)
           throw new UnauthorizedException('User does not have permission');
         req['context'] = { validation: getValidation };
+        console.log(req["context"]);
         next();
         break;
 
@@ -60,10 +64,10 @@ export class AuthRoleMiddleware implements NestMiddleware {
         break;
 
       case 'DELETE':
-        const deleteValition: ValidationResult = await this.validatePermission(httpMethod, resourceRequested, decodedToken)
-        if (!deleteValition)
+        const deleteValidation: ValidationResult = await this.validatePermission(httpMethod, resourceRequested, decodedToken)
+        if (!deleteValidation)
           throw new UnauthorizedException('User does not have permission.');
-        req['context'] = { deleteValition };
+        req['context'] = { deleteValidation };
         next();
         break;
       default:
