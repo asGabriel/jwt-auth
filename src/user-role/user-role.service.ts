@@ -1,7 +1,10 @@
+import { ValidationResult } from 'src/auth/validation-resource-return';
 import { BadRequestException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/database-sqlite/prisma.service';
 import { UserRoleDto } from './dto/userRole.dto';
 import { TokenVerifiedDto } from 'src/auth/dto/token-verified.dto';
+import { Role, User } from '@prisma/client';
+import { decode } from 'punycode';
 
 @Injectable()
 export class UserRoleService {
@@ -54,29 +57,56 @@ export class UserRoleService {
         return await this.prismaService.user.findMany()
     }
 
-    async delete(data: UserRoleDto) {
-        // try {
-        //     const user = await this.prismaService.user.findUnique({
-        //         where: { id: data.userId }
-        //     });
+    async delete(data: UserRoleDto, decodedToken: TokenVerifiedDto, validationResult: ValidationResult) {
+        try {
+            let user = null
+            console.log(validationResult)
+            if (validationResult.owneronly) {
+                user = await this.prismaService.user.findUnique({
+                    where: {
+                        id: decodedToken.id
+                    }, include: {
+                        Role: true
+                    }
+                })
+            } else {
+                user = await this.prismaService.user.findUnique({
+                    where: {
+                        id: data.userId
+                    }, select: {
+                        id: true,
+                        Role: {
+                            select: {
+                                id: true, name: true
+                            }
+                        }
+                    }
+                }
+                )
+            }
 
-        //     const role = await this.prismaService.role.findUnique({
-        //         where: {
-        //             id: Number(data.roleId)
-        //         }
-        //     })
+            user.Role.forEach(async element => {
+                const roleId = element.id
+                console.log(` roleId: ${roleId} userId: ${user.id}`)
+                // await this.prismaService.role.update({
+                //     where: {
+                //         id: roleId
+                //     }, data: {
+                //         User: {
+                //             disconnect: {
+                //                 id: user.id
+                //             }
+                //         }
+                //     }
+                // })
+                console.log("desconectado", roleId)
+            });
 
-        //     await this.prismaService.role.update({
-        //         where: { id: role.id },
-        //         data: {
-        //             users: { disconnect: { id: String(user.id) } }
-        //         }
-        //     });
+            return user;
 
-        //     return { message: "Relationship user-role has been deleted." }
-        // } catch (error) {
-        //     return { message: error.message }
-        // }
+        } catch (error) {
+            return { message: error.message }
+        }
     }
 
 }

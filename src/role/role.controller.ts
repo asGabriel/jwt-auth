@@ -5,6 +5,7 @@ import { DataRoleDto } from './dto/data-role.dto';
 import { AuthService } from 'src/auth/auth.service';
 import { ValidationResult } from 'src/auth/validation-resource-return';
 import { Request } from 'express';
+import { TokenVerifiedDto } from 'src/auth/dto/token-verified.dto';
 
 @Controller('role')
 @UseGuards(AuthGuard)
@@ -15,7 +16,7 @@ export class RoleController {
     ) { }
 
     async create(@Req() req: Request, @Headers('Authorization') authHeader: string, data: DataRoleDto) {
-        const decodedToken = await this.authService.verifyToken(authHeader);
+        const decodedToken: TokenVerifiedDto = await this.authService.verifyToken(authHeader);
         const validationResult: ValidationResult = req['context'];
         return await this.roleService.create(data)
     }
