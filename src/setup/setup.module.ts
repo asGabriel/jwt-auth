@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { PrismaService } from 'src/database-sqlite/prisma.service';
+import { PrismaService } from 'src/database/prisma.service';
 import { SetupController } from './setup.controller';
 import { SetupService } from './setup.service';
 

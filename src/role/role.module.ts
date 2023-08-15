@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { PrismaService } from 'src/database-sqlite/prisma.service';
+import { PrismaService } from 'src/database/prisma.service';
 import { RoleController } from './role.controller';
 import { RoleService } from './role.service';
 import { AuthGuard } from 'src/auth/auth.guard';

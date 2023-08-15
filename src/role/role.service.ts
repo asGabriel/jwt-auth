@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'src/database-sqlite/prisma.service';
+import { PrismaService } from 'src/database/prisma.service';
 import { DataRoleDto } from './dto/data-role.dto';
 import { Role } from '@prisma/client';
 

@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from "bcrypt";
-import { PrismaService } from 'src/database-sqlite/prisma.service';
+import { PrismaService } from 'src/database/prisma.service';
 import { rbac } from 'src/rbac-config';
 import { NewUserSetupDto } from './dto/new-user-setup.dto';
 import { UserCreatedDto } from './dto/user-created.dto';
@@ -56,7 +56,6 @@ export class SetupService {
                             await this.prismaService.permission.create({
                                 data: {
                                     name: resPermission.name,
-                                    owneronly: resPermission.owneronly,
                                     resource: {
                                         connectOrCreate: {
                                             create: {
@@ -85,7 +84,7 @@ export class SetupService {
 
             return "Setup has succesfully completed."
         } catch (error) {
-            throw new BadRequestException("Setup has been already executed", error.message)
+            throw new BadRequestException("Can't setup rbac.", error.message)
         }
     }
 }

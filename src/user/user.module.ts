@@ -1,7 +1,7 @@
 import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
-import { PrismaService } from 'src/database-sqlite/prisma.service';
+import { PrismaService } from 'src/database/prisma.service';
 import { AuthRoleMiddleware } from 'src/auth/auth-role.middleware';
 import { AuthService } from 'src/auth/auth.service';
 import { UserRoleService } from 'src/user-role/user-role.service';

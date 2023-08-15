@@ -1,7 +1,7 @@
 import { BadRequestException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { TokenVerifiedDto } from 'src/auth/dto/token-verified.dto';
-import { PrismaService } from 'src/database-sqlite/prisma.service';
+import { PrismaService } from 'src/database/prisma.service';
 import { NewPostDto } from './dto/new-post.dto';
 import { ValidationResult } from 'src/auth/validation-resource-return';
 import { Post } from '@prisma/client';
@@ -50,11 +50,11 @@ export class PostService {
     async update(data: NewPostDto, validationResult: ValidationResult, token: TokenVerifiedDto): Promise<Post> {
         try {
             let post: Post | null = null
-            if (validationResult.owneronly) {
-                post = await this.prisma.post.findFirst({ where: { id: data.postId, author: token.email }, include: { comments: true } })
-            } else {
-                post = await this.prisma.post.findUnique({ where: { id: data.postId }, include: { comments: true } })
-            }
+            // if (validationResult.owneronly) {
+            //     post = await this.prisma.post.findFirst({ where: { id: data.postId, author: token.email }, include: { comments: true } })
+            // } else {
+            //     post = await this.prisma.post.findUnique({ where: { id: data.postId }, include: { comments: true } })
+            // }
             if (!post) throw new NotFoundException("Post not found.")
 
             const updatedPost = await this.prisma.post.update({
@@ -73,11 +73,11 @@ export class PostService {
     async delete(id: number, validationResult: ValidationResult, token: TokenVerifiedDto): Promise<String> {
         try {
             let post: Post | null = null
-            if (validationResult.owneronly) {
-                post = await this.prisma.post.findFirst({ where: { id: Number(id), author: token.email }, include: { comments: true } })
-            } else {
-                post = await this.prisma.post.findUnique({ where: { id: Number(id) }, include: { comments: true } })
-            }
+            // if (validationResult.owneronly) {
+            //     post = await this.prisma.post.findFirst({ where: { id: Number(id), author: token.email }, include: { comments: true } })
+            // } else {
+            //     post = await this.prisma.post.findUnique({ where: { id: Number(id) }, include: { comments: true } })
+            // }
             if (!post) throw new NotFoundException("Post not found.")
 
             await this.prisma.post.delete({ where: { id: post.id }})

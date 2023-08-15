@@ -8,7 +8,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { jwtConstants } from 'src/constants/jwt-secret';
-import { PrismaService } from 'src/database-sqlite/prisma.service';
+import { PrismaService } from 'src/database/prisma.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { TokenVerifiedDto } from './dto/token-verified.dto';
 
@@ -21,37 +21,23 @@ export class AuthService {
             const user = await this.prisma.user.findUnique({
                 where: {
                     email: data.email,
-                },
-                include: {
-                    Role: {
-                        select: {
-                            id: true,
-                            name: true,
-                        },
-                    },
-                },
+                }, include: {
+                    Role: true
+                }
             });
             if (!user) throw new NotFoundException("User doesn't exist.");
-            // if (!user.Role) throw new UnauthorizedException("User without role, link to one before login")
 
             const isMatch = await bcrypt.compare(data.password, user.password);
             if (!isMatch) throw new UnauthorizedException();
 
-            // const perm = user.Role
-            // const perm = user.Role.permissions.map(({ name, resource, owneronly }) => ({
-            //     permission: name,
-            //     resource: resource.name,
-            //     owneronly: owneronly
-            //   }));
-
-            const payload = {
+            const payload: TokenVerifiedDto = {
                 id: user.id,
                 email: user.email,
                 roles: user.Role,
             };
 
             return {
-                access_token: await this.jwt.signAsync(payload, { secret: jwtConstants.secret }),
+                access_token: await this.jwt.signAsync(payload, { secret: jwtConstants.secret, expiresIn: '1h'}),
             };
         } catch (error) {
             throw new BadRequestException(error.message)
@@ -61,7 +47,7 @@ export class AuthService {
     async verifyToken(bearerToken: string): Promise<TokenVerifiedDto> {
         try {
             const token = bearerToken.replace('Bearer ', '');
-            const verifiedToken = await this.jwt.verify(token, { secret: jwtConstants.secret });
+            const verifiedToken = await this.jwt.verify(token);
 
             const payload: TokenVerifiedDto = {
                 id: verifiedToken.id,

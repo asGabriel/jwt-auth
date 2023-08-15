@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { RolePermissionService } from './role-permission.service';
 import { RolePermissionController } from './role-permission.controller';
-import { PrismaService } from 'src/database-sqlite/prisma.service';
+import { PrismaService } from 'src/database/prisma.service';
 
 @Module({
   providers: [RolePermissionService, PrismaService],
