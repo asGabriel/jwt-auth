@@ -1,6 +1,6 @@
 import { ValidationResult } from 'src/auth/validation-resource-return';
 import { BadRequestException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'src/database-sqlite/prisma.service';
+import { PrismaService } from 'src/database/prisma.service';
 import { UserRoleDto } from './dto/userRole.dto';
 import { TokenVerifiedDto } from 'src/auth/dto/token-verified.dto';
 import { Role, User } from '@prisma/client';
@@ -61,29 +61,19 @@ export class UserRoleService {
         try {
             let user = null
             console.log(validationResult)
-            if (validationResult.owneronly) {
-                user = await this.prismaService.user.findUnique({
-                    where: {
-                        id: decodedToken.id
-                    }, include: {
-                        Role: true
-                    }
-                })
-            } else {
-                user = await this.prismaService.user.findUnique({
-                    where: {
-                        id: data.userId
-                    }, select: {
-                        id: true,
-                        Role: {
-                            select: {
-                                id: true, name: true
-                            }
+            user = await this.prismaService.user.findUnique({
+                where: {
+                    id: data.userId
+                }, select: {
+                    id: true,
+                    Role: {
+                        select: {
+                            id: true, name: true
                         }
                     }
                 }
-                )
             }
+            )
 
             user.Role.forEach(async element => {
                 const roleId = element.id

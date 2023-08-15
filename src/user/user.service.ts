@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable, BadRequestException } from '@nestjs/common';
 import * as bcrypt from "bcrypt";
 import { TokenVerifiedDto } from 'src/auth/dto/token-verified.dto';
-import { PrismaService } from 'src/database-sqlite/prisma.service';
+import { PrismaService } from 'src/database/prisma.service';
 import { DeleteUserDto } from './dto/delete-user.dto';
 import { NewUserDto } from './dto/new-user.dto';
 import { UserRoleService } from 'src/user-role/user-role.service';
@@ -30,18 +30,15 @@ export class UserService {
                     email: data.email,
                     password: hashPassword,
                     username: data.username,
+                    Role: {
+                        connect: {
+                            name: 'user'
+                        }
+                    }
                 }, select: {
                     id: true, email: true, Role: true
-                }
+                },
             });
-
-            if (data.role.length > 0) {
-                const userRoleDto: UserRoleDto = {
-                    userId: newUser.id,
-                    roles: data.role
-                }
-                await this.userRoleService.create(userRoleDto)
-            }
 
             return newUser;
         } catch (error) {
@@ -51,14 +48,14 @@ export class UserService {
 
     async getUser(validationResult: ValidationResult, decodedToken: TokenVerifiedDto) {
         try {
-            if (validationResult.owneronly) {
+            // if (validationResult.owneronly) {
 
-                return await this.prismaService.user.findUnique({
-                    where: {
-                        id: decodedToken.id,
-                    }
-                })
-            }
+            //     return await this.prismaService.user.findUnique({
+            //         where: {
+            //             id: decodedToken.id,
+            //         }
+            //     })
+            // }
 
             return await this.prismaService.user.findMany({ include: { Role: true } })
         } catch (error) {

@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -20,7 +20,6 @@ model User {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  @@map("users")
 }
 
 model Role {
@@ -32,21 +31,18 @@ model Role {
   updatedAt   DateTime     @updatedAt
   deletedAt   DateTime?
 
-  @@map("roles")
 }
 
 model Permission {
   id         Int       @id @default(autoincrement())
   name       String
   resourceId Int
-  owneronly  Boolean
   resource   Resource  @relation(fields: [resourceId], references: [id])
   roles      Role[]    @relation("RolePermission")
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   deletedAt  DateTime?
 
-  @@map("permisions")
 }
 
 model Resource {
@@ -57,7 +53,6 @@ model Resource {
   updatedAt   DateTime     @updatedAt
   deletedAt   DateTime?
 
-  @@map("resources")
 }
 
 model Post {
@@ -70,7 +65,6 @@ model Post {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  @@map("posts")
 }
 
 model Comment {
@@ -83,7 +77,6 @@ model Comment {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  @@map("comments")
 }
 
 model InvalidToken {
@@ -91,5 +84,4 @@ model InvalidToken {
   invalidtoken String
   createdAt    DateTime @default(now())
 
-  @@map("invalidtokens")
 }

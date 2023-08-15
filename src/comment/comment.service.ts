@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { Comment } from '@prisma/client';
 import { TokenVerifiedDto } from 'src/auth/dto/token-verified.dto';
 import { ValidationResult } from 'src/auth/validation-resource-return';
-import { PrismaService } from 'src/database-sqlite/prisma.service';
+import { PrismaService } from 'src/database/prisma.service';
 import { NewCommentDto } from './dto/new-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 
@@ -35,15 +35,15 @@ export class CommentService {
     async getAll(decodedToken: TokenVerifiedDto, validationResult: ValidationResult) {
         try {
             let comment: Comment[] | null = null
-            if(validationResult.owneronly) {
-                comment = await this.prismaService.comment.findMany({
-                    where: {
-                        author: decodedToken.email
-                    }
-                })
-            } else {
-                comment = await this.prismaService.comment.findMany()
-            }
+            // if(validationResult.owneronly) {
+            //     comment = await this.prismaService.comment.findMany({
+            //         where: {
+            //             author: decodedToken.email
+            //         }
+            //     })
+            // } else {
+            //     comment = await this.prismaService.comment.findMany()
+            // }
             if(!comment) throw new NotFoundException("No comments found.")
 
             return comment
@@ -58,11 +58,11 @@ export class CommentService {
             if (!post) throw new NotFoundException("Invalid post id.");
 
             let comment: Comment | null = null
-            if (validationResult.owneronly) {
-                comment = await this.prismaService.comment.findUnique({ where: { id: Number(data.commentId), author: decodedToken.email } })
-            } else {
-                comment = await this.prismaService.comment.findUnique({ where: { id: Number(data.commentId) } })
-            }
+            // if (validationResult.owneronly) {
+            //     comment = await this.prismaService.comment.findUnique({ where: { id: Number(data.commentId), author: decodedToken.email } })
+            // } else {
+            //     comment = await this.prismaService.comment.findUnique({ where: { id: Number(data.commentId) } })
+            // }
             if (!comment) throw new NotFoundException("Invalid comment id.")
 
             const updatedComment: Comment = await this.prismaService.comment.update({
@@ -87,11 +87,11 @@ export class CommentService {
             if (!post) throw new NotFoundException("Invalid post id.");
 
             let comment: Comment | null = null
-            if (validationResult.owneronly = true) {
-                comment = await this.prismaService.comment.findUnique({ where: { id: Number(commentId), author: decodedToken.email } })
-            } else {
-                comment = await this.prismaService.comment.findUnique({ where: { id: Number(commentId) } })
-            }
+            // if (validationResult.owneronly = true) {
+            //     comment = await this.prismaService.comment.findUnique({ where: { id: Number(commentId), author: decodedToken.email } })
+            // } else {
+            //     comment = await this.prismaService.comment.findUnique({ where: { id: Number(commentId) } })
+            // }
             if (!comment) throw new NotFoundException("Invalid comment id.")
 
             await this.prismaService.comment.delete({

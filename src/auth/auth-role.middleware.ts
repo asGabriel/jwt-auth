@@ -7,8 +7,9 @@ import {
 } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
 import { AuthService } from 'src/auth/auth.service';
-import { PrismaService } from 'src/database-sqlite/prisma.service';
+import { PrismaService } from 'src/database/prisma.service';
 import { ValidationResult } from './validation-resource-return';
+import { TokenVerifiedDto } from './dto/token-verified.dto';
 
 @Injectable()
 export class AuthRoleMiddleware implements NestMiddleware {
@@ -35,68 +36,41 @@ export class AuthRoleMiddleware implements NestMiddleware {
       where: { name: resource },
     });
     if (!resourceRequested) throw new NotFoundException('Resource not found');
+    // console.log(httpMethod)
+    // console.log(resourceRequested)
+    // console.log(decodedToken)
+    const validationResult: boolean = await this.validatePermission(httpMethod, resourceRequested.id, decodedToken)
+    console.log(` validation res: ${validationResult}`)
+    if (!validationResult) throw new UnauthorizedException("User does not have permission")
 
-    switch (httpMethod) {
-      case 'GET':
-        console.log("midd ware get")
-        const getValidation: ValidationResult = await this.validatePermission(httpMethod, resourceRequested, decodedToken)
-        if (!getValidation)
-          throw new UnauthorizedException('User does not have permission');
-        req['context'] = { validation: getValidation };
-        console.log(req["context"]);
-        next();
-        break;
-
-      case 'POST':
-        const postValidation: ValidationResult = await this.validatePermission(httpMethod, resourceRequested, decodedToken)
-        if (!postValidation)
-          throw new UnauthorizedException('User does not have permission.');
-        req['context'] = { postValidation };
-        next();
-        break;
-
-      case 'PUT':
-        const putValidation: ValidationResult = await this.validatePermission(httpMethod, resourceRequested, decodedToken)
-        if (!putValidation)
-          throw new UnauthorizedException('User does not have permission.');
-        req['context'] = { putValidation };
-        next();
-        break;
-
-      case 'DELETE':
-        const deleteValidation: ValidationResult = await this.validatePermission(httpMethod, resourceRequested, decodedToken)
-        if (!deleteValidation)
-          throw new UnauthorizedException('User does not have permission.');
-        req['context'] = { deleteValidation };
-        next();
-        break;
-      default:
-        throw new UnauthorizedException();
-    }
+    req['context'] = { validation: validationResult };
+    console.log(req["context"]);
+    next();
   }
 
-  async validatePermission(httpMethod, resourceRequested, decodedToken): Promise<ValidationResult> {
-    const validation = await this.prismaService.permission.findFirst({
-      where: {
-        name: httpMethod.toLowerCase(),
-        resourceId: resourceRequested.id,
-        roles: {
-          some: {
-            name: decodedToken.roles.map((role) => role.name).join()
+  async validatePermission(httpMethod: string, resourceRequested: number, decodedToken: TokenVerifiedDto): Promise<boolean> {
+    try {
+      const permissionsArr = [];
+      for (const role of decodedToken.roles) {
+        const permission = await this.prismaService.permission.findFirst({
+          where: {
+            name: httpMethod.toLowerCase(),
+            resourceId: resourceRequested,
+            roles: {
+              some: { name: role.name },
+            }
           }
-        }
-      }, select: {
-        name: true, owneronly: true, resourceId: true
+        });
+        permissionsArr.push(permission);
       }
-    })
-
-    const validationResult: ValidationResult = {
-      permission: validation.name,
-      resourceId: validation.resourceId,
-      owneronly: validation.owneronly
+      
+      if (permissionsArr.some(permission => permission !== null)) {
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      throw new UnauthorizedException("User does not have permission (validation)", error.message);
     }
-
-    return validationResult;
   }
-
 }

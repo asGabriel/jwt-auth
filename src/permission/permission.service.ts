@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'src/database-sqlite/prisma.service';
+import { PrismaService } from 'src/database/prisma.service';
 import { NewPermissionDto } from './dto/new-permission.dto';
 import { TokenVerifiedDto } from 'src/auth/dto/token-verified.dto';
 import { ValidationResult } from 'src/auth/validation-resource-return';
@@ -39,7 +39,6 @@ export class PermissionService {
                 data: {
                     name: data.permission.toLowerCase(),
                     resourceId: resource.id,
-                    owneronly: true
                 }
             })
 

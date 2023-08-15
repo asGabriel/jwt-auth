@@ -11,7 +11,7 @@ import { RoleModule } from './role/role.module';
 import { AuthRoleMiddleware } from './auth/auth-role.middleware';
 import { AuthService } from './auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from './database-sqlite/prisma.service';
+import { PrismaService } from './database/prisma.service';
 
 @Module({
   imports: [UserModule, AuthModule, PostModule, CommentModule, UserRoleModule, RolePermissionModule, PermissionModule, SetupModule, RoleModule],

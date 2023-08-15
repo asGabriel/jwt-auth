@@ -10,7 +10,4 @@ export class NewUserDto {
     @IsNotEmpty()
     username: string;
 
-    @IsArray()
-    role: string[];
-
 }
